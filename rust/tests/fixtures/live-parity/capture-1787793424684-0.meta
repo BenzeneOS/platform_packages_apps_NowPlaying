@@ -1,0 +1,17 @@
+capturedAtUnixMs=1787793424702
+elapsedRealtimeNanos=2108380432017
+userId=0
+operationId=0
+modelUuid=9f6ad62a-1f0b-11e7-87c5-40a8f03d3f15
+eventStatus=0
+eventType=null
+soundModelHandle=3
+captureSession=65
+captureDelayMs=0
+capturePreambleMs=0
+sampleRate=16000
+encoding=2
+channelCount=1
+sampleCount=128000
+eventData=706f735f6d757369632c76616c3a3233353533
+rustResult=Take Five by The Dave Brubeck Quartet | track ryA6eHZNnXY | shard US7a55e23c084be7c048da3c191f782587 | score 11.786362 | offset 136

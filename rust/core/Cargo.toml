@@ -1,0 +1,8 @@
+[package]
+name = "nowplaying-core"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "nowplaying_core"
+path = "lib.rs"

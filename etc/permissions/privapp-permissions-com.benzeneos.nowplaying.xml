@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <privapp-permissions package="com.benzeneos.nowplaying">
+        <permission name="android.permission.CAPTURE_AUDIO_HOTWORD" />
+        <permission name="android.permission.MANAGE_SOUND_TRIGGER" />
+        <permission name="android.permission.MODIFY_AUDIO_ROUTING" />
+        <permission name="android.permission.QUERY_USERS" />
+        <permission name="android.permission.SOUND_TRIGGER_RUN_IN_BATTERY_SAVER" />
+    </privapp-permissions>
+</permissions>

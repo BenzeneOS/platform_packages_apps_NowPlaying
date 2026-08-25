@@ -1,0 +1,96 @@
+rust_library {
+    name: "libnowplaying_core",
+    crate_name: "nowplaying_core",
+    cargo_env_compat: true,
+    cargo_pkg_version: "0.1.0",
+    crate_root: "rust/core/lib.rs",
+    edition: "2024",
+    min_sdk_version: "29",
+}
+
+rust_ffi_shared {
+    name: "libnowplaying_jni",
+    crate_name: "nowplaying_jni",
+    cargo_env_compat: true,
+    cargo_pkg_version: "0.1.0",
+    crate_root: "rust/jni/lib.rs",
+    edition: "2024",
+    prefer_rlib: true,
+    rustlibs: [
+        "libjni",
+        "libnowplaying_core",
+    ],
+    min_sdk_version: "29",
+}
+
+rust_binary {
+    name: "nowplaying_live_parity_probe",
+    crate_name: "nowplaying_live_parity_probe",
+    crate_root: "rust/live_parity_probe.rs",
+    edition: "2024",
+    rustlibs: ["libnowplaying_core"],
+    min_sdk_version: "29",
+}
+
+android_app {
+    name: "NowPlaying",
+    certificate: "platform",
+    privileged: true,
+    platform_apis: true,
+    compile_multilib: "64",
+    jni_libs: ["libnowplaying_jni"],
+    use_embedded_native_libs: true,
+    srcs: ["src/**/*.kt"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        proguard_flags_files: ["proguard.flags"],
+    },
+    required: [
+        "nowplaying_nnfp_v3_weights",
+        "nowplaying_v3_config_tah",
+        "nowplaying_default_permissions",
+        "nowplaying_privapp_permissions",
+    ],
+}
+
+android_test {
+    name: "NowPlayingRecoveredBehaviorTests",
+    certificate: "platform",
+    platform_apis: true,
+    instrumentation_for: "NowPlaying",
+    srcs: ["tests/src/**/*.kt"],
+    manifest: "tests/AndroidManifest.xml",
+    static_libs: [
+        "androidx.test.ext.junit",
+        "androidx.test.runner",
+        "junit",
+    ],
+}
+
+prebuilt_etc {
+    name: "nowplaying_nnfp_v3_weights",
+    src: "assets/nnfp_v3.weights",
+    sub_dir: "nowplaying",
+    filename_from_src: true,
+}
+
+prebuilt_etc {
+    name: "nowplaying_v3_config_tah",
+    src: "assets/v3_config_tah.pb",
+    sub_dir: "nowplaying",
+    filename_from_src: true,
+}
+
+prebuilt_etc {
+    name: "nowplaying_default_permissions",
+    src: "etc/default-permissions/default-permissions-com.benzeneos.nowplaying.xml",
+    sub_dir: "default-permissions",
+    filename_from_src: true,
+}
+
+prebuilt_etc {
+    name: "nowplaying_privapp_permissions",
+    src: "etc/permissions/privapp-permissions-com.benzeneos.nowplaying.xml",
+    sub_dir: "permissions",
+    filename_from_src: true,
+}

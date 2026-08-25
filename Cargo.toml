@@ -1,0 +1,7 @@
+[workspace]
+members = ["rust/core", "rust/jni"]
+resolver = "2"
+
+[workspace.dependencies]
+jni = { default-features = false, version = "0.21.1" }
+nowplaying-core = { path = "rust/core" }

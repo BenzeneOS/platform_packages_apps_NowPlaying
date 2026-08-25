@@ -1,0 +1,13 @@
+[package]
+name = "nowplaying-jni"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+name = "nowplaying_jni"
+path = "lib.rs"
+
+[dependencies]
+jni.workspace = true
+nowplaying-core.workspace = true

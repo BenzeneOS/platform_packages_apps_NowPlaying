@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.benzeneos.nowplaying.tests">
+
+    <instrumentation
+        android:name="androidx.test.runner.AndroidJUnitRunner"
+        android:targetPackage="com.benzeneos.nowplaying" />
+
+    <application android:label="Now Playing recovered behavior tests" />
+</manifest>

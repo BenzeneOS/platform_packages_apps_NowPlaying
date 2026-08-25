@@ -1,0 +1,7 @@
+-keepclassmembers class com.benzeneos.nowplaying.RecognitionSession {
+    public java.lang.AutoCloseable beginOnDemand();
+}
+
+-keepclassmembers class com.benzeneos.nowplaying.StoredRecognition {
+    public *** get*();
+}
