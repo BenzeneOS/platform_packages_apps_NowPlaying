@@ -71,7 +71,7 @@ impl MusicFrontend {
             self.real.fill(0.0);
             self.imag.fill(0.0);
             self.fft
-                .process_512(&self.input, &mut self.real, &mut self.imag, &mut self.work);
+                .transform_512(&self.input, &mut self.real, &mut self.imag, &mut self.work);
             output.push(self.real[0].abs());
             for bin in 1..MUSIC_INPUT_WIDTH - 1 {
                 output.push(

@@ -20,7 +20,7 @@
         android:allowBackup="false"
         android:defaultToDeviceProtectedStorage="true"
         android:directBootAware="true"
-        android:label="Now Playing"
+        android:label="@string/app_name"
         android:name=".NowPlayingApplication"
         android:supportsRtl="true">
 
@@ -40,7 +40,7 @@
             android:name=".HistoryActivity"
             android:directBootAware="true"
             android:exported="true"
-            android:label="Now Playing history"
+            android:label="@string/history_activity_label"
             android:theme="@android:style/Theme.Material.Settings">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

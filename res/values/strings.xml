@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Now Playing</string>
+    <string name="history_activity_label">Now Playing history</string>
+    <string name="history_heading">Recognition history</string>
+    <string name="history_empty">No recognized songs yet</string>
+    <string name="history_timestamp"><xliff:g example="2 hours ago" id="relative">%1$s</xliff:g> · <xliff:g example="14 March 09:41" id="absolute">%2$s</xliff:g></string>
+    <string name="action_delete">Delete</string>
+    <string name="action_clear_all">Clear all</string>
+    <string name="clear_dialog_title">Clear recognition history</string>
+    <string name="clear_dialog_message">Delete every recognized song from this device?</string>
+    <string name="clear_dialog_confirm">Clear</string>
+</resources>

@@ -23,10 +23,10 @@ class HistoryActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        title = "Now Playing history"
+        title = getString(R.string.history_activity_label)
 
         clearButton = Button(this).apply {
-            text = "Clear all"
+            text = getString(R.string.action_clear_all)
             isEnabled = false
             setOnClickListener { confirmClear() }
         }
@@ -39,7 +39,7 @@ class HistoryActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             addView(
                 TextView(this@HistoryActivity).apply {
-                    text = "Recognition history"
+                    text = getString(R.string.history_heading)
                     textSize = 22f
                     setTypeface(typeface, Typeface.BOLD)
                 },
@@ -83,7 +83,7 @@ class HistoryActivity : Activity() {
         if (entries.isEmpty()) {
             entriesView.addView(
                 TextView(this).apply {
-                    text = "No recognized songs yet"
+                    text = getString(R.string.history_empty)
                     textSize = 16f
                     setPadding(0, dp(24), 0, 0)
                 },
@@ -123,7 +123,7 @@ class HistoryActivity : Activity() {
             setPadding(0, dp(12), 0, dp(12))
             addView(details, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(Button(this@HistoryActivity).apply {
-                text = "Delete"
+                text = getString(R.string.action_delete)
                 setOnClickListener { delete(entry.id) }
             })
         }
@@ -138,7 +138,7 @@ class HistoryActivity : Activity() {
         val date = Date(timestampMs)
         val absolute = DateFormat.getMediumDateFormat(this).format(date) +
             " " + DateFormat.getTimeFormat(this).format(date)
-        return "$relative · $absolute"
+        return getString(R.string.history_timestamp, relative, absolute)
     }
 
     private fun delete(id: Long) {
@@ -155,10 +155,10 @@ class HistoryActivity : Activity() {
 
     private fun confirmClear() {
         AlertDialog.Builder(this)
-            .setTitle("Clear recognition history")
-            .setMessage("Delete every recognized song from this device?")
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("Clear") { _, _ -> clear() }
+            .setTitle(R.string.clear_dialog_title)
+            .setMessage(R.string.clear_dialog_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.clear_dialog_confirm) { _, _ -> clear() }
             .show()
     }
 

@@ -41,6 +41,7 @@ android_app {
     jni_libs: ["libnowplaying_jni"],
     use_embedded_native_libs: true,
     srcs: ["src/**/*.kt"],
+    resource_dirs: ["res"],
     manifest: "AndroidManifest.xml",
     optimize: {
         proguard_flags_files: ["proguard.flags"],

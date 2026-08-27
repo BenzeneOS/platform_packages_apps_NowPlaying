@@ -4,7 +4,9 @@ const COS_PI_4: f32 = std::f32::consts::FRAC_1_SQRT_2;
 const COS_PI_8: f32 = 0.923_879_5;
 const SIN_PI_8: f32 = 0.382_683_43;
 
-// This mirrors libsense's split-radix butterfly order because a conventional float64 FFT left 14,647 model values mismatched.
+// libsense's FFT is djbfft 0.76 `fftr4_1024`, public domain, and this is a transliteration of it.
+// A conventional float64 FFT left 14,647 model values mismatched. `PERMUTATION` inverts djbfft's
+// `fftfreq_r` output order and carries a sign per bin because djbfft conjugates.
 #[derive(Debug, Clone)]
 pub(crate) struct GoogleFft {
     tables: Vec<Vec<f32>>,
@@ -19,7 +21,7 @@ impl GoogleFft {
         Self { tables }
     }
 
-    pub(crate) fn process(
+    pub(crate) fn transform_1024(
         &self,
         input: &[f32],
         real: &mut [f32],
@@ -31,9 +33,9 @@ impl GoogleFft {
             work[2 * index + 1] = input[index + 512];
         }
 
-        combine_c(work, self.table(128), 128);
-        fft_512(&mut work[..512], self);
-        fft_512_tail(&mut work[512..], self);
+        real_pass_mirrored(work, self.table(128), 128);
+        real_fft_512(&mut work[..512], self);
+        complex_fft_256(&mut work[512..], self);
 
         real[0] = work[0];
         imag[0] = 0.0;
@@ -53,7 +55,7 @@ impl GoogleFft {
         }
     }
 
-    pub(crate) fn process_512(
+    pub(crate) fn transform_512(
         &self,
         input: &[f32],
         real: &mut [f32],
@@ -65,9 +67,9 @@ impl GoogleFft {
             work[2 * index + 1] = input[index + 256];
         }
 
-        combine_c(work, self.table(64), 64);
-        fft_256(&mut work[..256], self);
-        fft_256_tail(&mut work[256..], self);
+        real_pass_mirrored(work, self.table(64), 64);
+        real_fft_256(&mut work[..256], self);
+        complex_fft_128(&mut work[256..], self);
 
         real[0] = work[0];
         imag[0] = 0.0;
@@ -101,72 +103,72 @@ fn twiddle_table(size: usize) -> Vec<f32> {
         .collect()
 }
 
-fn fft_512(data: &mut [f32], fft: &GoogleFft) {
-    combine_a(data, fft.table(64), 64);
-    fft_256(&mut data[..256], fft);
-    fft_256_tail(&mut data[256..], fft);
+fn real_fft_512(data: &mut [f32], fft: &GoogleFft) {
+    real_pass(data, fft.table(64), 64);
+    real_fft_256(&mut data[..256], fft);
+    complex_fft_128(&mut data[256..], fft);
 }
 
-fn fft_512_tail(data: &mut [f32], fft: &GoogleFft) {
-    combine_b(data, fft.table(32), 32);
-    fft_128_tail(&mut data[256..384], fft);
-    fft_128_tail(&mut data[384..], fft);
-    fft_256_tail(&mut data[..256], fft);
+fn complex_fft_256(data: &mut [f32], fft: &GoogleFft) {
+    complex_pass(data, fft.table(32), 32);
+    complex_fft_64(&mut data[256..384], fft);
+    complex_fft_64(&mut data[384..], fft);
+    complex_fft_128(&mut data[..256], fft);
 }
 
-fn fft_256(data: &mut [f32], fft: &GoogleFft) {
-    combine_a(data, fft.table(32), 32);
-    fft_128(&mut data[..128], fft);
-    fft_128_tail(&mut data[128..], fft);
+fn real_fft_256(data: &mut [f32], fft: &GoogleFft) {
+    real_pass(data, fft.table(32), 32);
+    real_fft_128(&mut data[..128], fft);
+    complex_fft_64(&mut data[128..], fft);
 }
 
-fn fft_256_tail(data: &mut [f32], fft: &GoogleFft) {
-    combine_b(data, fft.table(16), 16);
-    fft_64_tail(&mut data[128..192], fft);
-    fft_64_tail(&mut data[192..], fft);
-    fft_128_tail(&mut data[..128], fft);
+fn complex_fft_128(data: &mut [f32], fft: &GoogleFft) {
+    complex_pass(data, fft.table(16), 16);
+    complex_fft_32(&mut data[128..192], fft);
+    complex_fft_32(&mut data[192..], fft);
+    complex_fft_64(&mut data[..128], fft);
 }
 
-fn fft_128(data: &mut [f32], fft: &GoogleFft) {
-    combine_a(data, fft.table(16), 16);
-    fft_64(&mut data[..64], fft);
-    fft_64_tail(&mut data[64..], fft);
+fn real_fft_128(data: &mut [f32], fft: &GoogleFft) {
+    real_pass(data, fft.table(16), 16);
+    real_fft_64(&mut data[..64], fft);
+    complex_fft_32(&mut data[64..], fft);
 }
 
-fn fft_128_tail(data: &mut [f32], fft: &GoogleFft) {
-    combine_b(data, fft.table(8), 8);
-    fft_32_tail(&mut data[64..96], fft);
-    fft_32_tail(&mut data[96..], fft);
-    fft_64_tail(&mut data[..64], fft);
+fn complex_fft_64(data: &mut [f32], fft: &GoogleFft) {
+    complex_pass(data, fft.table(8), 8);
+    complex_fft_16(&mut data[64..96], fft);
+    complex_fft_16(&mut data[96..], fft);
+    complex_fft_32(&mut data[..64], fft);
 }
 
-fn fft_64(data: &mut [f32], fft: &GoogleFft) {
-    combine_a(data, fft.table(8), 8);
-    fft_32(&mut data[..32], fft);
-    fft_32_tail(&mut data[32..], fft);
+fn real_fft_64(data: &mut [f32], fft: &GoogleFft) {
+    real_pass(data, fft.table(8), 8);
+    real_fft_32(&mut data[..32], fft);
+    complex_fft_16(&mut data[32..], fft);
 }
 
-fn fft_64_tail(data: &mut [f32], fft: &GoogleFft) {
-    combine_b(data, fft.table(4), 4);
-    fft_16_tail(&mut data[32..48]);
-    fft_16_tail(&mut data[48..]);
-    fft_32_tail(&mut data[..32], fft);
+fn complex_fft_32(data: &mut [f32], fft: &GoogleFft) {
+    complex_pass(data, fft.table(4), 4);
+    complex_fft_8(&mut data[32..48]);
+    complex_fft_8(&mut data[48..]);
+    complex_fft_16(&mut data[..32], fft);
 }
 
-fn fft_32(data: &mut [f32], fft: &GoogleFft) {
-    combine_a(data, fft.table(4), 4);
-    fft_16(&mut data[..16]);
-    fft_16_tail(&mut data[16..]);
+fn real_fft_32(data: &mut [f32], fft: &GoogleFft) {
+    real_pass(data, fft.table(4), 4);
+    real_fft_16(&mut data[..16]);
+    complex_fft_8(&mut data[16..]);
 }
 
-fn fft_32_tail(data: &mut [f32], fft: &GoogleFft) {
-    combine_b(data, fft.table(2), 2);
-    fft_8_tail(&mut data[16..24]);
-    fft_8_tail(&mut data[24..]);
-    fft_16_tail(&mut data[..16]);
+fn complex_fft_16(data: &mut [f32], fft: &GoogleFft) {
+    complex_pass(data, fft.table(2), 2);
+    complex_fft_4(&mut data[16..24]);
+    complex_fft_4(&mut data[24..]);
+    complex_fft_8(&mut data[..16]);
 }
 
-fn combine_a(data: &mut [f32], table: &[f32], size: usize) {
+fn real_pass(data: &mut [f32], table: &[f32], size: usize) {
     let half = 4 * size;
     let (left, right) = data.split_at_mut(half);
     for index in 0..2 * size {
@@ -192,7 +194,7 @@ fn combine_a(data: &mut [f32], table: &[f32], size: usize) {
     }
 }
 
-fn combine_b(data: &mut [f32], table: &[f32], size: usize) {
+fn complex_pass(data: &mut [f32], table: &[f32], size: usize) {
     let quarter = 4 * size;
     let (first, rest) = data.split_at_mut(quarter);
     let (second, rest) = rest.split_at_mut(quarter);
@@ -246,7 +248,7 @@ fn combine_b(data: &mut [f32], table: &[f32], size: usize) {
     }
 }
 
-fn combine_c(data: &mut [f32], table: &[f32], size: usize) {
+fn real_pass_mirrored(data: &mut [f32], table: &[f32], size: usize) {
     let half = 4 * size;
     let (left, right) = data.split_at_mut(half);
     for index in 0..2 * size {
@@ -280,7 +282,7 @@ fn combine_c(data: &mut [f32], table: &[f32], size: usize) {
     }
 }
 
-fn fft_8(data: &mut [f32]) {
+fn real_fft_8(data: &mut [f32]) {
     let a2 = data[2];
     let a3 = data[3];
     let a6 = data[6];
@@ -309,7 +311,7 @@ fn fft_8(data: &mut [f32]) {
     data[5] = d45 + (d23 + d67) * COS_PI_4;
 }
 
-fn fft_8_tail(data: &mut [f32]) {
+fn complex_fft_4(data: &mut [f32]) {
     let a1 = data[1];
     let a2 = data[2];
     let a4 = data[4];
@@ -340,7 +342,7 @@ fn fft_8_tail(data: &mut [f32]) {
     data[1] = s15 + s37;
 }
 
-fn fft_16(data: &mut [f32]) {
+fn real_fft_16(data: &mut [f32]) {
     let a0 = data[0];
     let a1 = data[1];
     let a8 = data[8];
@@ -369,11 +371,11 @@ fn fft_16(data: &mut [f32]) {
         data[pair + 8] = left_difference * cosine - right_difference * sine;
         data[pair + 9] = left_difference * sine + right_difference * cosine;
     }
-    fft_8(&mut data[..8]);
-    fft_8_tail(&mut data[8..]);
+    real_fft_8(&mut data[..8]);
+    complex_fft_4(&mut data[8..]);
 }
 
-fn fft_16_tail(data: &mut [f32]) {
+fn complex_fft_8(data: &mut [f32]) {
     let mut x = [0.0; 16];
     x.copy_from_slice(data);
     let difference_08 = x[0] - x[8];
@@ -409,7 +411,7 @@ fn fft_16_tail(data: &mut [f32]) {
     data[13] = outer_difference + difference_rotation;
     data[14] = (difference_5_13 + difference_08) - sum_rotation;
     data[15] = outer_difference - difference_rotation;
-    fft_8_tail(&mut data[..8]);
+    complex_fft_4(&mut data[..8]);
 }
 
 const PERMUTATION: [i16; 511] = [

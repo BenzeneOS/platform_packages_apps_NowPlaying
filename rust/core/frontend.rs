@@ -132,7 +132,7 @@ impl Frontend {
             windowed_frames.extend_from_slice(&self.input);
             self.real.fill(0.0);
             self.imag.fill(0.0);
-            self.fft.process(
+            self.fft.transform_1024(
                 &self.input,
                 &mut self.real,
                 &mut self.imag,
